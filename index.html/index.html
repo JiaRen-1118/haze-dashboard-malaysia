@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Southeast Asian Haze Crisis - Professional Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Times New Roman', serif;
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: #6c757d;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #dee2e6;
+            flex-wrap: wrap;
+        }
+
+        .nav-tab {
+            background: transparent;
+            border: none;
+            padding: 15px 25px;
+            margin: 0 2px 5px 2px;
+            font-family: 'Times New Roman', serif;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #6c757d;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tab.active,
+        .nav-tab:hover {
+            color: #2c3e50;
+            border-bottom-color: #007bff;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background: #ffffff;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+
+        .card h3 {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin: 20px 0 10px 0;
+            color: #495057;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+
+        .map-container {
+            height: 500px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        .chart-container {
+            height: 400px;
+            margin: 20px 0;
+        }
+
+        .impact-box {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #007bff;
+        }
+
+        .impact-box h4 {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+
+        .impact-box ul {
+            margin-left: 20px;
+        }
+
+        .impact-box li {
+            margin-bottom: 5px;
+        }
+
+        .timeline {
+            border-left: 3px solid #007bff;
+            padding-left: 20px;
+            margin: 20px 0;
+        }
+
+        .timeline-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .timeline-year {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #007bff;
+            margin-bottom: 5px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #007bff;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .citation {
+            font-size: 0.85rem;
+            color: #6c757d;
+            font-style: italic;
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 3px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .table th,
+        .table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #dee2e6;
+        }
+
+        .table th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .severity-high {
+            background-color: #dc3545;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.8rem;
+        }
+
+        .severity-medium {
+            background-color: #ffc107;
+            color: #212529;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.8rem;
+        }
+
+        .severity-low {
+            background-color: #28a745;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.8rem;
+        }
+
+        .legislation-box {
+            background: #e3f2fd;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 5px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .funding-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .funding-amount {
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-tabs {
+                flex-wrap: wrap;
+            }
+            
+            .nav-tab {
+                margin-bottom: 5px;
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+
+            .funding-item {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Southeast Asian Haze Crisis Dashboard</h1>
+            <p>Comprehensive Analysis of Transboundary Haze Pollution in Malaysia and Regional Impact Assessment</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('overview')">Overview & Timeline</button>
+            <button class="nav-tab" onclick="showTab('impacts')">Economic & Social Impact</button>
+            <button class="nav-tab" onclick="showTab('causes')">Root Causes Analysis</button>
+            <button class="nav-tab" onclick="showTab('efforts')">Government & NGO Response</button>
+            <button class="nav-tab" onclick="showTab('public')">Public Opinion & Policy</button>
+            <button class="nav-tab" onclick="showTab('funding')">Funding & Allocations</button>
+            <button class="nav-tab" onclick="showTab('maps')">Interactive Impact Maps</button>
+        </div>
+
+        <!-- Overview Tab -->
+        <div id="overview" class="tab-content active">
+            <div class="card">
+                <h2>Executive Summary</h2>
+                <p>Transboundary haze pollution has been a recurring environmental crisis in Southeast Asia since 1972, with the most severe episodes occurring in 1997 and 2015. The primary source is peat fires in Indonesia, particularly in Sumatra and Kalimantan, caused by slash-and-burn land clearing for palm oil plantations.</p>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-number">$25B+</span>
+                        <div class="stat-label">Total Economic Damage (1997-2025)</div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">140,000+</span>
+                        <div class="stat-label">Estimated Deaths (1997-2015)</div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">8</span>
+                        <div class="stat-label">Countries Affected</div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">Medium</span>
+                        <div class="stat-label">2025 Risk Level</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Historical Timeline of Major Haze Episodes</h2>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-year">1972</div>
+                        <p>First recorded transboundary haze episode in Southeast Asia</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-year">1997-1998</div>
+                        <p><strong>Most severe episode on record.</strong> Affected area: 3+ million km². Economic damage: $9 billion across ASEAN. Malaysia declared state of emergency in Sarawak. 40,000+ hospitalizations across the region.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-year">2002</div>
+                        <p>ASEAN Agreement on Transboundary Haze Pollution signed in Kuala Lumpur</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-year">2005</div>
+                        <p>Significant haze event leading to widespread school closures in Malaysia. State of emergency declared at Port Klang with API above 500.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-year">2013</div>
+                        <p>Highest Air Pollutant Index (API) readings ever recorded in Malaysia, state of emergency declared in several regions</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-year">2015</div>
+                        <p><strong>Second most severe episode.</strong> Indonesia alone: $16.1 billion in damages. 2.6 million hectares burned. 100,000+ estimated deaths. Singapore Air Quality Index reached hazardous levels for weeks.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-year">2019</div>
+                        <p>Return of significant haze after 3-year respite. $5 billion estimated costs. 850,000+ hectares burned in Indonesia.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-year">2023-2024</div>
+                        <p>Moderate episodes with increasing hotspots. Open burning cases surge: Kedah (741), Selangor (661), Johor (505), Sabah (534)</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-year">2025</div>
+                        <p><strong>Current Status:</strong> Medium risk assessment by Singapore Institute of International Affairs. Elevated agricultural commodity prices increasing deforestation pressure.</p>
+                    </div>
+                </div>
+                <div class="citation">
+                    Sources: ASEAN Secretariat (2021), Wikipedia Southeast Asian Haze (2025), Singapore Institute of International Affairs (2025), World Bank Reports, Al Jazeera Economic Analysis (2019)
+                </div>
+            </div>
+        </div>
+
+        <!-- Economic & Social Impact Tab -->
+        <div id="impacts" class="tab-content">
+            <div class="card">
+                <h2>Economic Impact Analysis by State and Region</h2>
+                
+                <h3>Regional Economic Losses by Episode</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Year</th>
+                            <th>Indonesia</th>
+                            <th>Malaysia</th>
+                            <th>Singapore</th>
+                            <th>Total Regional</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1997-1998</td>
+                            <td>$4.2 billion</td>
+                            <td>$321 million</td>
+                            <td>Data limited</td>
+                            <td>$9 billion</td>
+                        </tr>
+                        <tr>
+                            <td>2015</td>
+                            <td>$16.1 billion (1.9% GDP)</td>
+                            <td>6,500 premature deaths est.</td>
+                            <td>$1+ billion est. (0.17% GDP)</td>
+                            <td>$17+ billion</td>
+                        </tr>
+                        <tr>
+                            <td>2019</td>
+                            <td>$5 billion</td>
+                            <td>Data unavailable</td>
+                            <td>Data limited</td>
+                            <td>$5+ billion</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Malaysia State-Level Economic Impact Analysis</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>State/Territory</th>
+                            <th>Primary Economic Sectors Affected</th>
+                            <th>Severity Level</th>
+                            <th>Specific Impact Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Selangor</td>
+                            <td>Manufacturing, Services, Tourism</td>
+                            <td><span class="severity-high">High</span></td>
+                            <td>Major economic hub, Klang Port disruptions, 661 open burning cases (2024), significant healthcare costs</td>
+                        </tr>
+                        <tr>
+                            <td>Kuala Lumpur</td>
+                            <td>Financial Services, Tourism, Retail</td>
+                            <td><span class="severity-high">High</span></td>
+                            <td>Capital city business disruptions, airport delays, reduced visibility affecting commerce</td>
+                        </tr>
+                        <tr>
+                            <td>Johor</td>
+                            <td>Manufacturing, Tourism, Agriculture</td>
+                            <td><span class="severity-high">High</span></td>
+                            <td>Border economic zone affected, tourism losses, 505 open burning cases (2024)</td>
+                        </tr>
+                        <tr>
+                            <td>Sarawak</td>
+                            <td>Palm Oil, Logging, Tourism</td>
+                            <td><span class="severity-high">High</span></td>
+                            <td>State of emergency (1997), palm oil production disrupted, highest inpatient medical costs</td>
+                        </tr>
+                        <tr>
+                            <td>Sabah</td>
+                            <td>Palm Oil, Tourism, Agriculture</td>
+                            <td><span class="severity-medium">Medium</span></td>
+                            <td>534 open burning cases (2024), plantation sector impacts, tourism affected</td>
+                        </tr>
+                        <tr>
+                            <td>Penang</td>
+                            <td>Electronics, Tourism, Manufacturing</td>
+                            <td><span class="severity-medium">Medium</span></td>
+                            <td>Port operations disrupted, semiconductor industry affected, tourism revenue decline</td>
+                        </tr>
+                        <tr>
+                            <td>Pahang</td>
+                            <td>Agriculture, Forestry, Mining</td>
+                            <td><span class="severity-medium">Medium</span></td>
+                            <td>Local peat fires, forest industry impacts, agricultural productivity reduced</td>
+                        </tr>
+                        <tr>
+                            <td>Kedah</td>
+                            <td>Agriculture, Rice Production</td>
+                            <td><span class="severity-medium">Medium</span></td>
+                            <td>Highest open burning cases (741 in 2024), rice sector productivity loss</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Sector-Specific Economic Losses</h3>
+                <div class="grid-2">
+                    <div class="impact-box">
+                        <h4>Healthcare Sector Burden</h4>
+                        <p><strong>Annual inpatient costs:</strong> $91,000 USD per year in Malaysia (Kuala Lumpur-Selangor region). <strong>Healthcare utilization increase:</strong> 31% increase in inpatient cases during haze episodes. <strong>Regional pattern:</strong> Sarawak recorded highest inpatient rates during severe episodes.</p>
+                    </div>
+                    <div class="impact-box">
+                        <h4>Tourism Industry Impact</h4>
+                        <p><strong>Flight cancellations:</strong> Regular disruptions during peak episodes. <strong>Visitor arrivals:</strong> Significant decline during haze seasons. <strong>Visit Malaysia 2026:</strong> Government targeting 23.5 million tourists, RM 76.8 billion revenue - haze poses major risk.</p>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="impact-box">
+                        <h4>Agriculture and Palm Oil</h4>
+                        <p><strong>Crop productivity:</strong> Reduced yields during haze periods. <strong>Palm oil production:</strong> 8.3% decline in 1998 due to El Niño and haze conditions. <strong>Fisheries damage:</strong> Coastal areas affected by air quality degradation.</p>
+                    </div>
+                    <div class="impact-box">
+                        <h4>Manufacturing and Services</h4>
+                        <p><strong>Industrial production:</strong> Factory shutdowns during severe episodes. <strong>Supply chain disruption:</strong> Port and logistics delays. <strong>Energy sector:</strong> Power generation efficiency affected by air quality.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Social and Health Impact by State</h2>
+                
+                <h3>Health Impact Statistics</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-number">6,500+</span>
+                        <div class="stat-label">Premature deaths in Malaysia (2015)</div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">31%</span>
+                        <div class="stat-label">Increase in healthcare utilization during haze</div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">595</span>
+                        <div class="stat-label">Highest PM10 reading (μg/m³) in Selangor 2013</div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">19%</span>
+                        <div class="stat-label">Increase in respiratory mortality</div>
+                    </div>
+                </div>
+
+                <h3>State-Level Health Impact Analysis</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>State/Territory</th>
+                            <th>Healthcare Utilization Impact</th>
+                            <th>Vulnerable Population</th>
+                            <th>Specific Health Challenges</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Selangor (Klang Valley)</td>
+                            <td>67% of readings classified as haze episodes (2012-2015)</td>
+                            <td>High population density in urban areas</td>
+                            <td>Highest PM10 levels recorded, major hospitals overwhelmed</td>
+                        </tr>
+                        <tr>
+                            <td>Kuala Lumpur</td>
+                            <td>100-200% increase in outpatient cases during peak episodes</td>
+                            <td>Dense urban population, elderly residents</td>
+                            <td>Acute respiratory infections, asthma exacerbations</td>
+                        </tr>
+                        <tr>
+                            <td>Sarawak</td>
+                            <td>Highest inpatient rates during severe episodes</td>
+                            <td>Rural communities, indigenous populations</td>
+                            <td>Limited medical facilities, emergency evacuations</td>
+                        </tr>
+                        <tr>
+                            <td>Johor</td>
+                            <td>Moderate increase in respiratory cases</td>
+                            <td>Border communities, industrial workers</td>
+                            <td>Cross-border health impacts, occupational exposure</td>
+                        </tr>
+                        <tr>
+                            <td>Sabah</td>
+                            <td>Seasonal healthcare spikes</td>
+                            <td>Plantation workers, coastal communities</td>
+                            <td>Limited healthcare infrastructure in remote areas</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Health Conditions Linked to Haze Exposure</h3>
+                <div class="grid-2">
+                    <div class="impact-box">
+                        <h4>Acute Health Effects</h4>
+                        <ul>
+                            <li>Acute exacerbation of bronchial asthma (AEBA)</li>
+                            <li>Chronic obstructive pulmonary disease (AECOPD)</li>
+                            <li>Upper respiratory infections</li>
+                            <li>Eye and skin irritation</li>
+                            <li>Cardiovascular stress</li>
+                        </ul>
+                    </div>
+                    <div class="impact-box">
+                        <h4>Long-term Health Impacts</h4>
+                        <ul>
+                            <li>Increased lung cancer diagnoses</li>
+                            <li>Acute ischemic stroke</li>
+                            <li>Acute myocardial infarction</li>
+                            <li>Cardiac arrest</li>
+                            <li>Chronic bronchitis</li>
+                            <li>Birth defects (pregnant mothers)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3>Social Disruption by Region</h3>
+                <div class="impact-box">
+                    <h4>Education Sector Disruptions</h4>
+                    <p><strong>Klang Valley:</strong> Regular school closures during episodes affecting 2+ million students. <strong>Sarawak:</strong> Extended school closures during 1997 emergency. <strong>East Malaysia:</strong> Limited alternative learning arrangements in rural areas.</p>
+                </div>
+
+                <div class="impact-box">
+                    <h4>Workplace and Economic Activity</h4>
+                    <p><strong>Outdoor industries:</strong> Construction, agriculture, port operations severely affected. <strong>Manufacturing:</strong> Factories with outdoor components experience production delays. <strong>Service sector:</strong> Reduced foot traffic in commercial areas during severe episodes.</p>
+                </div>
+
+                <div class="citation">
+                    Sources: ScienceDirect Health Impact Studies (2014, 2018), Frontiers in Ecology and Evolution (2021), Wikipedia Air Pollution in Malaysia (2024), Ecological Processes Journal (2022), Department of Environment Malaysia
+                </div>
+            </div>
+        </div>
+
+        <!-- Causes Analysis Tab -->
+        <div id="causes" class="tab-content">
+            <div class="card">
+                <h2>Root Causes of Haze Pollution</h2>
+                
+                <h3>Primary Causes</h3>
+                <div class="impact-box">
+                    <h4>1. Peatland Destruction and Drainage</h4>
+                    <p>Indonesia has 265,500 km² of peatland (13.9% of land area). Malaysia has 26,685 km² (8.1% of land area). Over 60% of peat swamp forests converted or degraded in past 20-30 years. Drained peat becomes extremely fire-prone due to high carbon content.</p>
+                </div>
+
+                <div class="impact-box">
+                    <h4>2. Slash-and-Burn Agriculture</h4>
+                    <p>Industrial-scale land clearing for palm oil and pulpwood plantations. Fire used as cheapest and fastest method compared to mechanical clearing. 40% of all fires in 2009 detected in peatlands despite covering only 10% of studied area.</p>
+                </div>
+
+                <div class="impact-box">
+                    <h4>3. Palm Oil Industry Expansion</h4>
+                    <p>Indonesia and Malaysia produce 85% of world's palm oil. Indonesia: 11.9 million hectares under cultivation, projected to reach 13 million by 2025. Between 2009-2011, 25% of Indonesian forestland cleared for palm plantations.</p>
+                </div>
+
+                <h3>Geographic Sources</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Region</th>
+                            <th>Country</th>
+                            <th>Primary Activities</th>
+                            <th>Impact Level</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>South Sumatra</td>
+                            <td>Indonesia</td>
+                            <td>Palm oil plantations, peat fires</td>
+                            <td><span class="severity-high">High</span></td>
+                        </tr>
+                        <tr>
+                            <td>Riau Province</td>
+                            <td>Indonesia</td>
+                            <td>Palm oil plantations, peat fires</td>
+                            <td><span class="severity-high">High</span></td>
+                        </tr>
+                        <tr>
+                            <td>Central Kalimantan</td>
+                            <td>Indonesia</td>
+                            <td>Palm oil plantations, peat fires</td>
+                            <td><span class="severity-high">High</span></td>
+                        </tr>
+                        <tr>
+                            <td>West Kalimantan</td>
+                            <td>Indonesia</td>
+                            <td>Palm oil plantations, peat fires</td>
+                            <td><span class="severity-high">High</span></td>
+                        </tr>
+                        <tr>
+                            <td>Pahang</td>
+                            <td>Malaysia</td>
+                            <td>Local peat fires, deforestation</td>
+                            <td><span class="severity-medium">Medium</span></td>
+                        </tr>
+                        <tr>
+                            <td>North Selangor</td>
+                            <td>Malaysia</td>
+                            <td>Oil palm plantations</td>
+                            <td><span class="severity-medium">Medium</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Corporate Responsibility and Involvement</h3>
+                <div class="impact-box">
+                    <h4>Malaysian and Singaporean Companies in Indonesia</h4>
+                    <p><strong>Major companies involved:</strong> IOI Corporation, Genting, KLK (Malaysia); Bumitama, Musim Mas (Singapore). Many fires occurred on land owned by Malaysian and Singaporean plantation companies. Complex ownership structures often obscure true accountability.</p>
+                </div>
+
+                <h3>Contributing Factors</h3>
+                <div class="grid-2">
+                    <div class="impact-box">
+                        <h4>Meteorological Factors</h4>
+                        <ul>
+                            <li>El Niño weather patterns causing extended dry seasons</li>
+                            <li>Monsoon delays reducing natural fire suppression</li>
+                            <li>Wind patterns carrying smoke across borders</li>
+                            <li>Climate change intensifying dry conditions</li>
+                        </ul>
+                    </div>
+                    <div class="impact-box">
+                        <h4>Economic and Governance Factors</h4>
+                        <ul>
+                            <li>Weak law enforcement in Indonesia</li>
+                            <li>Patronage networks protecting palm oil companies</li>
+                            <li>Economic incentives favoring rapid land clearing</li>
+                            <li>Limited accountability for transboundary pollution</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="citation">
+                    Sources: Wikipedia Southeast Asian Haze (2025), MIT News (2018), LSE Research (2021), Yale Modern Southeast Asia, CNBC (2023), Business & Human Rights Resource Centre, Greenpeace Southeast Asia (2019)
+                </div>
+            </div>
+        </div>
+
+        <!-- Government & NGO Efforts Tab -->
+        <div id="efforts" class="tab-content">
+            <div class="card">
+                <h2>Government Initiatives and Response</h2>
+                
+                <h3>Malaysian Government Actions</h3>
+                <div class="legislation-box">
+                    <h4>Policy Framework</h4>
+                    <p><strong>Environmental Quality Act (1974):</strong> Foundation of Malaysia's environmental policy</p>
+                    <p><strong>Twelfth Malaysia Plan (2021-2025):</strong> Focus on advancing green growth and environmental sustainability</p>
+                    <p><strong>National Energy Transition Roadmap (NETR):</strong> Launched July 2023, targeting net-zero emissions</p>
+                </div>
+
+                <div class="impact-box">
+                    <h4>Current Government Efforts (2024-2025)</h4>
+                    <ul>
+                        <li>Proposed Clean Air Act - expected presentation to Parliamentary Committee in 2024</li>
+                        <li>Enhanced monitoring through 65 air quality stations nationwide</li>
+                        <li>Cloud seeding operations during severe episodes</li>
+                        <li>Diplomatic engagement with Indonesia on transboundary fires</li>
+                        <li>ASEAN Chairmanship 2025 focusing on environmental rights</li>
+                    </ul>
+                </div>
+
+                <h3>Regional Cooperation Efforts</h3>
+                <div class="impact-box">
+                    <h4>ASEAN Agreement on Transboundary Haze Pollution (2002)</h4>
+                    <p>Signed in Kuala Lumpur, ratified by Indonesia in 2014. Limited enforcement mechanisms have resulted in continued annual episodes despite agreement.</p>
+                </div>
+
+                <div class="impact-box">
+                    <h4>Singapore's Transboundary Haze Pollution Act (2014)</h4>
+                    <p>Criminalizes activities overseas contributing to haze in Singapore. Malaysia considered similar legislation but shelved in 2020.</p>
+                </div>
+
+                <h3>Indonesian Government Response</h3>
+                <div class="grid-2">
+                    <div class="impact-box">
+                        <h4>Peatland Restoration Agency (BRG)</h4>
+                        <p>Established 2015 post-haze crisis. Mandate: restore and conserve peat forests, block drainage canals, rewet peatlands. 12,000+ wells drilled for firefighting by 2018.</p>
+                    </div>
+                    <div class="impact-box">
+                        <h4>Law Enforcement</h4>
+                        <p>203 companies warned in 2024, 20 companies sealed including Malaysian subsidiaries. Legal actions against violators, though enforcement remains challenging.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>NGO and Civil Society Response</h2>
+                
+                <h3>Key Organizations</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Organization</th>
+                            <th>Country</th>
+                            <th>Key Activities</th>
+                            <th>Major Achievements</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Greenpeace Malaysia</td>
+                            <td>Malaysia</td>
+                            <td>SUHAKAM complaint, CERAH Coalition, advocacy for Clean Air Act</td>
+                            <td>Human rights recognition of clean air, parliamentary report</td>
+                        </tr>
+                        <tr>
+                            <td>WWF Malaysia</td>
+                            <td>Malaysia</td>
+                            <td>Conservation programs, sustainable palm oil advocacy</td>
+                            <td>Corporate accountability campaigns, sustainability standards</td>
+                        </tr>
+                        <tr>
+                            <td>CERAH Anti-Haze Action Coalition</td>
+                            <td>Malaysia</td>
+                            <td>Human rights approach to haze pollution</td>
+                            <td>Legal framework advocacy, public awareness</td>
+                        </tr>
+                        <tr>
+                            <td>Clean Air Network</td>
+                            <td>Thailand</td>
+                            <td>Regional advocacy and policy monitoring</td>
+                            <td>Cross-border coordination efforts</td>
+                        </tr>
+                        <tr>
+                            <td>PM Haze</td>
+                            <td>Singapore</td>
+                            <td>Public awareness and government accountability</td>
+                            <td>Policy pressure and transparency initiatives</td>
+                        </tr>
+                        <tr>
+                            <td>CETDEM</td>
+                            <td>Malaysia</td>
+                            <td>Environmental sustainability research and training</td>
+                            <td>Technology development and capacity building</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Major NGO Achievements</h3>
+                <div class="impact-box">
+                    <h4>SUHAKAM Report "Silent Enemy" (2024)</h4>
+                    <p>Human Rights Commission of Malaysia recognized environmental rights as basic human rights. Six recommendations including Clean Air Act enactment. Report to be tabled in Parliament.</p>
+                </div>
+
+                <div class="impact-box">
+                    <h4>Corporate Accountability Campaigns</h4>
+                    <p>Greenpeace campaigns against major palm oil companies (IOI, Genting, KLK). 300,000-signature petition delivered to corporations. Transparency and accountability pressure on listed companies.</p>
+                </div>
+
+                <div class="citation">
+                    Sources: Greenpeace Malaysia, WWF Malaysia, LSE Southeast Asia Blog (2022), Singapore Institute of International Affairs, SAGE Journals (2024)
+                </div>
+            </div>
+        </div>
+
+        <!-- Public Opinion Tab -->
+        <div id="public" class="tab-content">
+            <div class="card">
+                <h2>Public Opinion and Policy Reactions</h2>
+                
+                <h3>Public Perception Survey Results (Malaysia)</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-number">55%</span>
+                        <div class="stat-label">Support environmental protection requiring economic growth</div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">52%</span>
+                        <div class="stat-label">Favor environment over economic growth</div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">47%</span>
+                        <div class="stat-label">Disagree "haze is fair price for development"</div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">45%</span>
+                        <div class="stat-label">Prioritize economic growth over environment</div>
+                    </div>
+                </div>
+
+                <h3>Public Concern Ranking of Air Pollution Sources</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Pollution Source</th>
+                            <th>Relative Priority Index</th>
+                            <th>Public Perception</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>Motor vehicle emissions</td>
+                            <td>100</td>
+                            <td>Primary daily concern</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>Industrial emissions</td>
+                            <td>81.5</td>
+                            <td>Major pollution source</td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>Open burning</td>
+                            <td>79.7</td>
+                            <td>Significant local issue</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>Haze episodes</td>
+                            <td>57.2</td>
+                            <td>Seasonal concern</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Political and Media Response</h3>
+                <div class="impact-box">
+                    <h4>Government Statements and Actions</h4>
+                    <p>Minister Nik Nazmi called for regional ASEAN action on transboundary haze. Malaysia "seriously considering" laws holding companies liable for air pollution. Diplomatic notes sent to Indonesian counterparts regarding current fires.</p>
+                </div>
+
+                <div class="impact-box">
+                    <h4>Public Criticism and Accountability</h4>
+                    <p>Increasing public criticism despite media controls. Social media campaigns demanding stricter enforcement. Environmental groups filing human rights complaints. Growing awareness of health impacts driving policy pressure.</p>
+                </div>
+
+                <h3>Religious and Cultural Perspectives</h3>
+                <div class="impact-box">
+                    <h4>Religious Values and Environmental Protection</h4>
+                    <p>Mixed responses from Malaysian religious communities. Some disconnect between religious teachings and environmental action. Government-sanctioned prayers for rain during episodes. Emphasis on scientific solutions over divine intervention.</p>
+                </div>
+
+                <h3>Human Rights Recognition</h3>
+                <div class="legislation-box">
+                    <h4>UN Resolution on Environmental Rights (2022)</h4>
+                    <p>Malaysia among 161 nations voting for historic resolution declaring clean, healthy, sustainable environment as universal human right. Resolution strengthens civil society demands for clean air through Malaysian Human Rights Commission.</p>
+                </div>
+
+                <div class="citation">
+                    Sources: PLOS One Public Opinion Study (2019), ScienceDirect Policy Analysis (2023), Greenpeace Malaysia, The Diplomat (2023), Global Environmental Change Journal (2014), TECSEA Research (2021)
+                </div>
+            </div>
+        </div>
+
+        <!-- Funding Tab -->
+        <div id="funding" class="tab-content">
+            <div class="card">
+                <h2>Government Budget Allocations</h2>
+                
+                <h3>Malaysia Budget 2025 - Environmental Allocations</h3>
+                <div class="funding-item">
+                    <span>Ministry of Natural Resources and Environmental Sustainability (NRES)</span>
+                    <span class="funding-amount">RM 7.22 billion</span>
+                </div>
+                <div class="funding-item">
+                    <span>Ministry of Energy Transition and Water Transformation (PETRA)</span>
+                    <span class="funding-amount">Combined total above</span>
+                </div>
+                <div class="funding-item">
+                    <span>National Energy Transition Facilitation Fund</span>
+                    <span class="funding-amount">RM 300 million (up from RM 100 million)</span>
+                </div>
+                <div class="funding-item">
+                    <span>Ecological Fiscal Transfer for Biodiversity Conservation</span>
+                    <span class="funding-amount">RM 250 million (up from RM 200 million)</span>
+                </div>
+                <div class="funding-item">
+                    <span>Green Technology Financing Scheme</span>
+                    <span class="funding-amount">RM 1 billion (extended until 2026)</span>
+                </div>
+                <div class="funding-item">
+                    <span>NGO Support for Social Welfare</span>
+                    <span class="funding-amount">RM 100 million</span>
+                </div>
+                <div class="funding-item">
+                    <span>National Disaster Management Agency (floods/haze response)</span>
+                    <span class="funding-amount">RM 600 million</span>
+                </div>
+
+                <h3>Malaysia Budget 2024 - Environmental Focus</h3>
+                <div class="funding-item">
+                    <span>Environmental and Climate Initiatives (40 programs)</span>
+                    <span class="funding-amount">RM 240.24 billion total package</span>
+                </div>
+                <div class="funding-item">
+                    <span>Electric Vehicles and Energy Transition</span>
+                    <span class="funding-amount">RM 2.77 billion</span>
+                </div>
+                <div class="funding-item">
+                    <span>Biodiversity Sukuk</span>
+                    <span class="funding-amount">RM 1 billion</span>
+                </div>
+                <div class="funding-item">
+                    <span>NGO Support</span>
+                    <span class="funding-amount">RM 100 million</span>
+                </div>
+
+                <h3>Corporate Investment in Environmental Solutions</h3>
+                <div class="impact-box">
+                    <h4>UEM Lestra and Tenaga Nasional Berhad (TNB)</h4>
+                    <p>RM 16 billion investment to upgrade grid and decarbonize industrial areas</p>
+                </div>
+
+                <div class="impact-box">
+                    <h4>Financial Institution Commitments</h4>
+                    <p>RM 200 billion in financing funds from financial institutions to support low-carbon economy transition</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>International and Corporate Funding</h2>
+                
+                <h3>Palm Oil Industry Sustainability Investments</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Initiative</th>
+                            <th>Funding Source</th>
+                            <th>Focus Area</th>
+                            <th>Amount/Impact</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>RSPO Certification Program</td>
+                            <td>Industry contributions</td>
+                            <td>Sustainable palm oil standards</td>
+                            <td>Global certification system</td>
+                        </tr>
+                        <tr>
+                            <td>Hotspot Detection Systems</td>
+                            <td>RSPO, satellite monitoring</td>
+                            <td>Early fire detection</td>
+                            <td>4-satellite monitoring fleet</td>
+                        </tr>
+                        <tr>
+                            <td>Asian Bank Financing</td>
+                            <td>Regional banks</td>
+                            <td>Palm oil sector funding</td>
+                            <td>$19 billion to palm oil firms</td>
+                        </tr>
+                        <tr>
+                            <td>Investor Engagement</td>
+                            <td>International investors</td>
+                            <td>ESG compliance</td>
+                            <td>$7.9 trillion assets under management</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Challenges in Funding Distribution</h3>
+                <div class="impact-box">
+                    <h4>Enforcement and Implementation Gaps</h4>
+                    <p>Despite significant allocations, enforcement remains weak. Third-sector organizations report insufficient sustained funding for meaningful long-term solutions. Need for enhanced coordination between government and non-government sectors.</p>
+                </div>
+
+                <div class="impact-box">
+                    <h4>Corporate Accountability Issues</h4>
+                    <p>Many financial institutions continue to fund companies linked to deforestation. Limited transparency in supply chain financing. Calls for stronger due diligence in environmental risk assessment.</p>
+                </div>
+
+                <div class="citation">
+                    Sources: ISIS Malaysia Budget Analysis (2024), Edge Malaysia (2024), State Department Investment Climate (2024), Malaysian Green Technology Corporation, Asian Development Bank, PRI Investor Reports (2022), Earthsight Analysis
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Maps Tab -->
+        <div id="maps" class="tab-content">
+            <div class="card">
+                <h2>Interactive Haze Impact Maps</h2>
+                
+                <h3>Malaysia Haze Severity by State (Historical Average)</h3>
+                <div id="malaysiaMap" class="map-container"></div>
+                
+                <h3>Regional Haze Source and Impact Areas</h3>
+                <div id="regionalMap" class="map-container"></div>
+                
+                <h3>Map Legend</h3>
+                <div class="grid-3">
+                    <div class="impact-box">
+                        <h4 style="color: #dc3545;">High Impact (Red)</h4>
+                        <p>Frequent severe episodes, major economic disruption, emergency declarations, healthcare system overwhelmed</p>
+                    </div>
+                    <div class="impact-box">
+                        <h4 style="color: #ffc107;">Medium Impact (Yellow)</h4>
+                        <p>Regular episodes, moderate economic impact, school closures, health advisories</p>
+                    </div>
+                    <div class="impact-box">
+                        <h4 style="color: #28a745;">Low Impact (Green)</h4>
+                        <p>Occasional episodes, minimal direct impact, limited disruption</p>
+                    </div>
+                </div>
+
+                <h3>Air Quality Monitoring Infrastructure</h3>
+                <div class="impact-box">
+                    <h4>Malaysia Air Quality Monitoring Network</h4>
+                    <p><strong>Coverage:</strong> 65 monitoring stations nationwide using Air Pollutant Index (API) following USEPA standards. <strong>Technology:</strong> Real-time data collection for PM10, PM2.5, and other pollutants. <strong>Expansion:</strong> Department of Environment considering wider coverage expansion.</p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Air Quality Monitoring Data</h2>
+                <div class="chart-container">
+                    <canvas id="aqiChart"></canvas>
+                </div>
+                
+                <h3>Current Air Quality Status (Sample Readings)</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Location</th>
+                            <th>State</th>
+                            <th>Current AQI</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Petaling Jaya</td>
+                            <td>Selangor</td>
+                            <td>63</td>
+                            <td>Moderate</td>
+                        </tr>
+                        <tr>
+                            <td>Kuala Lumpur (Batu Muda)</td>
+                            <td>Federal Territory</td>
+                            <td>62</td>
+                            <td>Moderate</td>
+                        </tr>
+                        <tr>
+                            <td>Kuching</td>
+                            <td>Sarawak</td>
+                            <td>62</td>
+                            <td>Moderate</td>
+                        </tr>
+                        <tr>
+                            <td>Segamat</td>
+                            <td>Johor</td>
+                            <td>60</td>
+                            <td>Moderate</td>
+                        </tr>
+                        <tr>
+                            <td>Kota Kinabalu</td>
+                            <td>Sabah</td>
+                            <td>51</td>
+                            <td>Moderate</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="citation">
+                    Sources: Department of Environment Malaysia, IQAir Malaysia Real-time Monitoring, Air Quality Monitoring Networks, MyEQMS Portal
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab functionality
+        function showTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.nav-tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+            
+            // Initialize maps when maps tab is opened
+            if (tabName === 'maps') {
+                setTimeout(() => {
+                    initializeMaps();
+                }, 100);
+            }
+        }
+
+        // Initialize Malaysia Map
+        function initializeMalaysiaMap() {
+            if (document.getElementById('malaysiaMap').innerHTML !== '') return;
+            
+            const malaysiaMap = L.map('malaysiaMap').setView([4.2105, 101.9758], 6);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: ' OpenStreetMap contributors'
+            }).addTo(malaysiaMap);
+
+            // Malaysian states with haze impact data
+            const stateData = [
+                {name: 'Selangor', lat: 3.0738, lng: 101.5183, severity: 'high', impact: 'Major economic hub, frequent school closures, 661 open burning cases (2024), healthcare costs $91,000/year'},
+                {name: 'Kuala Lumpur', lat: 3.1390, lng: 101.6869, severity: 'high', impact: 'Capital city, severe visibility reduction, 100-200% increase in outpatient cases during episodes'},
+                {name: 'Johor', lat: 1.4927, lng: 103.7414, severity: 'high', impact: 'Border state, tourism affected, 505 open burning cases in 2024, economic zone disruptions'},
+                {name: 'Pahang', lat: 3.8126, lng: 103.3256, severity: 'medium', impact: 'Local peat fires, forest degradation, agricultural productivity impacts'},
+                {name: 'Perak', lat: 4.5921, lng: 101.0901, severity: 'medium', impact: 'Industrial areas affected, respiratory health concerns, moderate air quality issues'},
+                {name: 'Negeri Sembilan', lat: 2.7297, lng: 101.9381, severity: 'medium', impact: 'Agricultural sector impacts, moderate air quality issues'},
+                {name: 'Kedah', lat: 6.1184, lng: 100.3685, severity: 'medium', impact: 'Highest open burning cases (741 in 2024), agricultural fires, rice production affected'},
+                {name: 'Penang', lat: 5.4164, lng: 100.3327, severity: 'medium', impact: 'Tourism sector affected, port operations disrupted, electronics industry impacted'},
+                {name: 'Kelantan', lat: 6.1254, lng: 102.2386, severity: 'low', impact: 'Local peat fires in Bachok, limited transboundary impact'},
+                {name: 'Terengganu', lat: 5.3117, lng: 103.1324, severity: 'low', impact: 'Coastal state, minimal direct haze impact'},
+                {name: 'Perlis', lat: 6.4449, lng: 100.1997, severity: 'low', impact: 'Northern border, occasional episodes'},
+                {name: 'Sabah', lat: 5.9804, lng: 116.0735, severity: 'medium', impact: '534 open burning cases in 2024, palm oil regions affected, plantation worker health concerns'},
+                {name: 'Sarawak', lat: 1.5533, lng: 110.3592, severity: 'high', impact: 'State of emergency declared in 1997, ongoing peat fire issues, highest inpatient rates'}
+            ];
+
+            stateData.forEach(state => {
+                const color = state.severity === 'high' ? '#dc3545' : 
+                             state.severity === 'medium' ? '#ffc107' : '#28a745';
+                
+                const marker = L.circleMarker([state.lat, state.lng], {
+                    radius: state.severity === 'high' ? 12 : state.severity === 'medium' ? 8 : 6,
+                    fillColor: color,
+                    color: '#ffffff',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.7
+                }).addTo(malaysiaMap);
+
+                marker.bindPopup(`
+                    <strong>${state.name}</strong><br>
+                    <strong>Impact Level:</strong> ${state.severity.toUpperCase()}<br>
+                    <strong>Details:</strong> ${state.impact}
+                `);
+            });
+        }
+
+        // Initialize Regional Map
+        function initializeRegionalMap() {
+            if (document.getElementById('regionalMap').innerHTML !== '') return;
+            
+            const regionalMap = L.map('regionalMap').setView([0, 110], 5);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: ' OpenStreetMap contributors'
+            }).addTo(regionalMap);
+
+            // Fire source areas and affected regions
+            const regionalData = [
+                // Fire sources (Indonesia)
+                {name: 'South Sumatra', lat: -3.3194, lng: 104.9147, type: 'source', impact: 'Major peat fires, palm oil plantations, primary transboundary haze source'},
+                {name: 'Riau Province', lat: 0.2933, lng: 101.7068, type: 'source', impact: 'Primary haze source, extensive peat burning, 27,683 hectares burned in recent episodes'},
+                {name: 'Central Kalimantan', lat: -1.6815, lng: 113.3823, type: 'source', impact: 'Large-scale plantation fires, peat restoration area'},
+                {name: 'West Kalimantan', lat: -0.2787, lng: 109.9740, type: 'source', impact: 'Transboundary fire source, palm oil expansion area'},
+                
+                // Affected areas
+                {name: 'Peninsular Malaysia', lat: 4.2105, lng: 101.9758, type: 'affected', impact: 'Primary affected region, economic losses, health impacts'},
+                {name: 'Singapore', lat: 1.3521, lng: 103.8198, type: 'affected', impact: 'Severe air quality impact, $1+ billion economic losses'},
+                {name: 'Brunei', lat: 4.5353, lng: 114.7277, type: 'affected', impact: 'Regular haze episodes, tourism sector affected'},
+                {name: 'Southern Thailand', lat: 7.8804, lng: 98.3923, type: 'affected', impact: 'Seasonal impact, agricultural disruption'}
+            ];
+
+            regionalData.forEach(location => {
+                const color = location.type === 'source' ? '#dc3545' : '#007bff';
+                const radius = location.type === 'source' ? 15 : 10;
+                
+                const marker = L.circleMarker([location.lat, location.lng], {
+                    radius: radius,
+                    fillColor: color,
+                    color: '#ffffff',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                }).addTo(regionalMap);
+
+                marker.bindPopup(`
+                    <strong>${location.name}</strong><br>
+                    <strong>Type:</strong> ${location.type === 'source' ? 'Fire Source' : 'Affected Area'}<br>
+                    <strong>Impact:</strong> ${location.impact}
+                `);
+            });
+        }
+
+        // Initialize both maps
+        function initializeMaps() {
+            initializeMalaysiaMap();
+            initializeRegionalMap();
+        }
+
+        // Initialize AQI Chart
+        function initializeAQIChart() {
+            const ctx = document.getElementById('aqiChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['1997', '2005', '2013', '2015', '2019', '2023', '2024', '2025'],
+                    datasets: [{
+                        label: 'Peak Air Pollutant Index (API)',
+                        data: [500, 300, 400, 350, 280, 200, 250, 220],
+                        borderColor: '#dc3545',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        tension: 0.4,
+                        pointBackgroundColor: '#dc3545',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6
+                    }, {
+                        label: 'Hazardous Threshold (API 300)',
+                        data: [300, 300, 300, 300, 300, 300, 300, 300],
+                        borderColor: '#ffc107',
+                        borderDash: [5, 5],
+                        pointRadius: 0,
+                        fill: false
+                    }, {
+                        label: 'Unhealthy Threshold (API 100)',
+                        data: [100, 100, 100, 100, 100, 100, 100, 100],
+                        borderColor: '#28a745',
+                        borderDash: [10, 5],
+                        pointRadius: 0,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Historical Haze Severity in Malaysia (Peak API Readings)',
+                            font: {
+                                family: 'Times New Roman',
+                                size: 16,
+                                weight: 'bold'
+                            }
+                        },
+                        legend: {
+                            labels: {
+                                font: {
+                                    family: 'Times New Roman'
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 600,
+                            title: {
+                                display: true,
+                                text: 'Air Pollutant Index (API)',
+                                font: {
+                                    family: 'Times New Roman'
+                                }
+                            },
+                            ticks: {
+                                font: {
+                                    family: 'Times New Roman'
+                                }
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Year',
+                                font: {
+                                    family: 'Times New Roman'
+                                }
+                            },
+                            ticks: {
+                                font: {
+                                    family: 'Times New Roman'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize charts when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeAQIChart();
+        });
+    </script>
+</body>
+</html>
